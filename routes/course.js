@@ -1,28 +1,64 @@
-const db = require('../database');
+const express = require('express');
+const router = express.Router();
+const course = require('../models/course_model');
 
-const course = {
-  getcourse: function(callback) {
-    return db.query('select * from course', callback);
-  },
-  getById: function(id, callback) {
-    return db.query('select * from course where id_course=?', [id], callback);
-  },
-  add: function(course, callback) {
-    return db.query(
-      'insert into course (name,credits) values(?,?)',
-      [course.name, course.credits, course.isbn],
-      callback
-    );
-  },
-  delete: function(id, callback) {
-    return db.query('delete from course where id_course=?', [id], callback);
-  },
-  update: function(id, course, callback) {
-    return db.query(
-      'update course set name=?,credits=? where id_course=?',
-      [course.name, course.credits, id],
-      callback
-    );
+router.get('/:id?',
+ function(request, response) {
+  if (request.params.id) {
+    course.getById(request.params.id, function(err, dbResult) {
+      if (err) {
+        response.json(err);
+      } else {
+        console.log(dbResult[0]);
+        response.json(dbResult[0]);
+      }
+    });
+  } else {
+    course.getcourse(function(err, dbResult) {
+      if (err) {
+        response.json(err);
+      } else {
+        console.log(dbResult);
+        response.json(dbResult);
+      }
+    });
   }
-};
-module.exports = course;
+});
+
+
+router.post('/', 
+function(request, response) {
+  course.add(request.body, function(err, dbResult) {
+    if (err) {
+      response.json(err);
+    } else {
+      response.json(dbResult.insertId);
+    }
+  });
+});
+
+
+router.delete('/:id', 
+function(request, response) {
+  course.delete(request.params.id, function(err, dbResult) {
+    if (err) {
+      response.json(err);
+    } else {
+      response.json(dbResult);
+    }
+  });
+});
+
+
+router.put('/:id', 
+function(request, response) {
+  course.update(request.params.id, request.body, function(err, dbResult) {
+    if (err) {
+      response.json(err);
+    } else {
+      response.json(dbResult);
+    }
+  });
+});
+
+module.exports = router;
